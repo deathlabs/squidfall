@@ -1,0 +1,101 @@
+---
+name: check
+
+on:
+  push:
+    branches: [ "**" ]
+    paths:
+      - "frontend/**"
+      - "inference/**"
+
+jobs:
+  secrets:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v6
+      - name: Run Trufflehog
+        id: trufflehog
+        uses: trufflesecurity/trufflehog@main
+        continue-on-error: false
+
+  code-lint:
+    name: Code Lint Check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+          - inference
+          - frontend
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python dependencies
+        run: python -m pip install black
+      - name: Check code formatting
+        run: black --diff --color --check ${{ matrix.container }}
+
+  dockerfile-link:
+    name: Dockerfile Lint Check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+          - inference
+          - frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          failure-threshold: error
+          dockerfile: ${{ matrix.container }}/Dockerfile
+
+  sast:
+    name: SAST Scan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+          - inference
+          - frontend
+    container:
+      image: semgrep/semgrep
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v6
+      - name: Run Semgrep
+        run: semgrep scan --config auto ${{ matrix.container }}
+
+  sca:
+    name: SBOM Scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+          - inference
+          - frontend
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run Syft
+        uses: anchore/sbom-action@v0
+        with:
+          path: ${{ matrix.container }}
+          output-file: sbom-${{ matrix.container }}.json
+          artifact-name: sbom-${{ matrix.container }}
+      - name: Run Grype
+        uses: anchore/scan-action@v7
+        with:
+          sbom: sbom-${{ matrix.container }}.json
+          severity-cutoff: high
