@@ -1,3 +1,29 @@
 ---
+repo_url: https://pages.cdso.army.mil/ai2c/squidfall/docs/
 site_name: squidfall
 docs_dir: squidfall
+theme: readthedocs
+nav:
+  - 'Application':
+    - 'Overview': 'application/overview.md'
+    - 'Setup': 'application/setup.md'
+    - 'Database': 'application/database.md'
+    - 'Backend': 'application/backend.md'
+    - 'Tools': 'application/tools.md'
+    - 'Inference': 'application/inference.md'
+    - 'Frontend': 'application/frontend.md'
+  - 'Continuous Integration': 
+    - 'Overview': 'continuous-integration/overview.md'
+    - 'Setup': 'continuous-integration/setup.md'
+  - 'Continuous Delivery':
+    - 'Overview': 'continuous-delivery/overview.md'
+    - 'Setup': 'continuous-delivery/setup.md'
+  - 'Platform Resources':
+    - 'Overview': 'platform-resources/overview.md'
+    - 'Setup': 'platform-resources/setup.md'
+  - 'Deployment':
+    - 'Overview': 'deployment/overview.md'
+    - 'Setup': 'deployment/setup.md'
+  - 'Documentation':
+    - 'Overview': 'documentation/overview.md'
+    - 'Setup': 'documentation/setup.md'

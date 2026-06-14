@@ -1,41 +1,59 @@
 services:
 
+  database:
+    profiles: [ all, backend, database ]
+    build: database
+    image: squidfall/database:latest
+    container_name: squidfall-database
+    ports:
+      - "5432:5432"
+    volumes:
+      - squidfall_database:/var/lib/postgresql/data
+    env_file:
+      - database/.env
+
   backend:
     profiles: [ all, backend ]
     build: backend
     image: squidfall/backend:latest
     container_name: squidfall-backend
+    ports:
+      - "8000:8000"
     env_file:
       - backend/.env
 
-  database:
-    profiles: [ all, database ]
-    build: database
-    image: squidfall/database:latest
-    container_name: squidfall-database
+  tools:
+    profiles: [ all, inference, tools ]
+    build: tools
+    image: squidfall/tools:latest
+    container_name: squidfall-tools
+    ports:
+      - "8002:8002"
     env_file:
-      - database/.env
-
-  frontend:
-    profiles: [ all, frontend ]
-    build: frontend
-    image: squidfall/frontend:latest
-    container_name: squidfall-frontend
-    env_file:
-      - frontend/.env
+      - tools/.env
 
   inference:
     profiles: [ all, inference ]
     build: inference
     image: squidfall/inference:latest
     container_name: squidfall-inference
+    ports:
+      - "8001:8001"
     env_file:
       - inference/.env
 
-  tools:
-     profiles: [ all, tools ]
-     build: tools
-     image: squidfall/tools:latest
-     container_name: squidfall-tools
-     env_file:
-       - tools/.env
+  frontend:
+    profiles: [ all, frontend ]
+    build:
+      context: frontend
+      args:
+        LANGGRAPH_DEPLOYMENT_URL: "http://squidfall-inference:8001"
+    image: squidfall/frontend:latest
+    container_name: squidfall-frontend
+    ports:
+      - "80:3000"
+    env_file:
+      - frontend/.env
+
+volumes:
+  squidfall_database:

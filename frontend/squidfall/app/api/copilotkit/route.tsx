@@ -11,7 +11,7 @@ const serviceAdapter = new ExperimentalEmptyAdapter();
 const runtime = new CopilotRuntime({
   agents: {
     sample_agent: new LangGraphHttpAgent({
-      url:  process.env.LANGGRAPH_DEPLOYMENT_URL || "http://localhost:8123",
+      url:  process.env.LANGGRAPH_DEPLOYMENT_URL || "http://localhost:8001/api/v1",
     }),
   }
 });

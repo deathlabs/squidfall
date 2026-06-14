@@ -1,7 +1,10 @@
-
+azure-identity
 ag-ui-langgraph
 copilotkit
-dotenv
 fastapi
-langchain_openai
+langchain
+langchain-openai
+langchain-mcp-adapters
+langgraph
+pydantic
 uvicorn

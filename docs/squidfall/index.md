@@ -1,0 +1,1 @@
+The purpose of Squidfall is to serve as an example of an agent-native application. These docs were written to help developers re-create and modify components of Squidfall to support whatever project they're working on.
