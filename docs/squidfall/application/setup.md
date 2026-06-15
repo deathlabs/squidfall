@@ -1,6 +1,11 @@
 # Setup
+The following instructions (and therefore the ones throughout this chapter) assume you already have Make, the PostgreSQL client (17.7), Python (3.12), and Docker installed.
 
-**Step 1.** Create a file called `Makefile` and add the content below to it.
+* [Install PostgreSQL](https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-database#install-postgresql)  
+* [Install Docker](https://docs.docker.com/engine/install/ubuntu/)
+
+**Step 1.** In the root of the repository, create a file called `Makefile` and add the content below to it. This file will define the commands you'll use to manage the project's containers throughout development. Each target (`build`, `start`, `stop`, `status`) wraps a Docker Compose command and accepts an optional `DOCKER_COMPOSE_PROFILE` argument so you can operate on a subset of services instead of the full stack. If you don't pass a profile, it defaults to `all`, which includes every service. To target a specific profile, run a command like `make DOCKER_COMPOSE_PROFILE=backend start`.
+
 ```makefile
 # ---------------------------------------------------------
 # Misc.
@@ -55,12 +60,13 @@ status:
 	docker compose --profile $(DOCKER_COMPOSE_PROFILE) ps --format "table {{.Name}}\t{{.Ports}}\t{{.Status}}"
 ```
 
-**Step 2.** Create a file called `compose.yml` and add the content below to it.
+**Step 2.** Create another file in the root of the repository called `compose.yml` and add the content below to it. This file describes the five services that make up Squidfall and how they relate to each other. Each service has a `profiles` field that controls which `make` targets it participates in. For example, running `make DOCKER_COMPOSE_PROFILE=backend start` will bring up only the `database` and `backend` services, since both include `backend` in their profiles list. Every service loads its environment variables from a `.env` file inside its own subdirectory, so you'll need a `database/.env`, `backend/.env`, `tools/.env`, `inference/.env`, and `frontend/.env` before running anything. The `database` service additionally mounts a named volume to persist PostgreSQL data across restarts. The `frontend` service receives the inference service's internal URL as a build argument so it can communicate with the LangGraph deployment without that URL leaking into the runtime environment.
+
 ```yaml
 services:
 
   database:
-    profiles: [ all, backend, database ]
+    profiles: [ all, inference, backend, database ]
     build: database
     image: squidfall/database:latest
     container_name: squidfall-database
@@ -72,7 +78,7 @@ services:
       - database/.env
 
   backend:
-    profiles: [ all, backend ]
+    profiles: [ all, inference, backend ]
     build: backend
     image: squidfall/backend:latest
     container_name: squidfall-backend
@@ -116,4 +122,230 @@ services:
 
 volumes:
   squidfall_database:
+```
+
+**Step 3.** Create a third file in the root of the repository called `.gitignore` and add the content below to it. This file tells Git which files to exclude from version control. The `.env` files in each service subdirectory contain secrets and environment-specific values that should never be committed, so they are excluded by pattern. If you need to communicate what variables are expected, add a corresponding `.env.example` file to each subdirectory and commit that instead.
+
+```bash
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py.cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+#   For a library or package, you might want to ignore these files since the code is
+#   intended to run in multiple environments; otherwise, check them in:
+# .python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# UV
+#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#uv.lock
+
+# poetry
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
+#   This is especially recommended for binary packages to ensure reproducibility, and is more
+#   commonly ignored for libraries.
+#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+#poetry.lock
+#poetry.toml
+
+# pdm
+#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#   pdm recommends including project-wide configuration in pdm.toml, but excluding .pdm-python.
+#   https://pdm-project.org/en/latest/usage/project/#working-with-version-control
+#pdm.lock
+#pdm.toml
+.pdm-python
+.pdm-build/
+
+# pixi
+#   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
+#pixi.lock
+#   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
+#   in the .venv directory. It is recommended not to include this directory in version control.
+.pixi
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.env.local.secrets
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
+#  and can be added to the global gitignore or merged into this file.  For a more nuclear
+#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
+#.idea/
+
+# Abstra
+# Abstra is an AI-powered process automation framework.
+# Ignore directories containing user credentials, local state, and settings.
+# Learn more at https://abstra.io/docs
+.abstra/
+
+# Visual Studio Code
+#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
+#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#  you could uncomment the following to ignore the entire vscode folder
+# .vscode/
+
+# Ruff stuff:
+.ruff_cache/
+
+# PyPI configuration file
+.pypirc
+
+# Cursor
+#  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
+#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
+#  refer to https://docs.cursor.com/context/ignore-files
+.cursorignore
+.cursorindexingignore
+
+# Marimo
+marimo/_static/
+marimo/_lsp/
+__marimo__/
+
+*.gguf
+*.cer
+*.crt
+*.key
+
+uv.lock
+.env.secrets
+
+.venv
+*.cer
+*.key
+.env
 ```

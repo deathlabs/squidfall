@@ -91,6 +91,20 @@ make DOCKER_COMPOSE_PROFILE=database status
 source database/.env && psql -h localhost -U postgres -c "\l"
 ```
 
+You should get output similar to below. 
+```
+                                                 List of databases
+   Name    |  Owner   | Encoding | Locale Provider | Collate |  Ctype  | Locale | ICU Rules |   Access privileges   
+-----------+----------+----------+-----------------+---------+---------+--------+-----------+-----------------------
+ postgres  | postgres | UTF8     | libc            | C       | C.UTF-8 |        |           | 
+ squidfall | postgres | UTF8     | libc            | C       | C.UTF-8 |        |           | 
+ template0 | postgres | UTF8     | libc            | C       | C.UTF-8 |        |           | =c/postgres          +
+           |          |          |                 |         |         |        |           | postgres=CTc/postgres
+ template1 | postgres | UTF8     | libc            | C       | C.UTF-8 |        |           | =c/postgres          +
+           |          |          |                 |         |         |        |           | postgres=CTc/postgres
+(4 rows)
+```
+
 **Step 10.** Run the command below to stop the container.
 ```bash
 make DOCKER_COMPOSE_PROFILE=database stop

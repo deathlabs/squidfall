@@ -15,16 +15,17 @@ cd tools
 fastmcp
 ```
 
-**Step 4.** Create a directory called `squidfall` within the `tools` directory.
+**Step 4.** In the `tools` directory, create a directory called `squidfall`.
 ```bash
 mkdir squidfall
 ```
 
-**Step 5.** Create a file called `__init__.py` inside the `squidfall` directory you just created.
+**Step 5.** Inside the `squidfall` directory you just created, create a file called `__init__.py` 
 
-**Step 6.** Create a file called `main.py` inside the `squidfall` directory and add the content below to it.
+**Step 6.** Inside the `squidfall` directory, create a file called `main.py` and add the content below to it.
 ```python
 # Standard library imports.
+from json import dumps
 from logging import getLogger
 from os import environ, getenv
 
@@ -32,6 +33,8 @@ from os import environ, getenv
 from fastmcp import FastMCP
 from fastmcp.utilities.logging import configure_logging
 from httpx import AsyncClient
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
 
 # Init a MCP server and set its logging level.
 mcp = FastMCP(name="squidfall")
@@ -39,6 +42,11 @@ configure_logging(level="DEBUG")
 logger = getLogger("squidfall")
 
 GEOCODING_API_KEY = environ["GEOCODING_API_KEY"]
+
+
+@mcp.custom_route("/api/v1/healthcheck", methods=["GET"])
+async def health_check(request: Request) -> PlainTextResponse:
+    return PlainTextResponse(dumps({"status": "ok"}))
 
 
 @mcp.tool(description="Get the latitude and longitude for a location.")
@@ -143,7 +151,17 @@ make DOCKER_COMPOSE_PROFILE=tools start
 make DOCKER_COMPOSE_PROFILE=tools status
 ```
 
-**Step 12.** Run the command below to stop the container.
+**Step 12.** If the container has started, run the commands below to interact with it. 
+```bash
+curl http://localhost:8002/api/v1/healthcheck && echo
+```
+
+You should get output similar to below. 
+```json
+{"status": "ok"}
+```
+
+**Step 13.** Run the command below to stop the container.
 ```bash
 make DOCKER_COMPOSE_PROFILE=tools stop
 ```

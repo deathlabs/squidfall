@@ -10,7 +10,7 @@ mkdir backend
 cd backend
 ```
 
-**Step 3.** Create a Python virtual environment called `.venv`.
+**Step 3.** Create a Python virtual environment called `.venv` in the `backend` directory.
 ```bash
 python -m venv .venv
 ```
@@ -24,6 +24,7 @@ source .venv/bin/activate
 ```
 django-ninja
 psycopg2-binary
+tzdata
 ```
 
 **Step 6.** Install the Python packages defined in the `requirements.txt` file you just created.
@@ -42,7 +43,17 @@ from pathlib import Path
 from os import environ, getenv
 ```
 
-**Step 9.** In the same `settings.py` file, replace the `INSTALLED_APPS` with the content below.
+**Step 9.** In the same `settings.py` file, set `DEBUG` to `False`.
+```python
+DEBUG = False
+```
+
+**Step 10.** In the same `settings.py` file, replace the `ALLOWED_HOSTS` with the content below.
+```python
+ALLOWED_HOSTS = ["localhost", "squidfall-backend"]
+```
+
+**Step 11.** In the same `settings.py` file, replace the `INSTALLED_APPS` with the content below.
 ```python
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -55,7 +66,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-**Step 10.** In the same `settings.py` file, replace the `DATABASES` dictionary with the content below. The purpose the `else` block is to allow the container to be scanned in a Continuous Integration pipeline without the dependency of a real database (i.e., it will use a SQLite file if the `DB_ENGINE` environment variable isn't set).
+**Step 12.** In the same `settings.py` file, replace the `DATABASES` dictionary with the content below. The purpose the `else` block is to allow the container to be scanned in a Continuous Integration pipeline without the dependency of a real database (i.e., it will use a SQLite file if the `DB_ENGINE` environment variable isn't set).
 ```python
 if getenv("DB_ENGINE") == "postgres":
     DATABASES = {
@@ -77,7 +88,7 @@ else:
     }
 ```
 
-**Step 11.** In the `squidfall` Django project, open the file called `urls.py` and replace its contents with the code below. 
+**Step 13.** In the `squidfall` Django project, open the file called `urls.py` and replace its contents with the code below. 
 ```python
 # Third party imports
 from django.contrib import admin
@@ -93,12 +104,12 @@ urlpatterns = [
 
 ```
 
-**Step 12.** In the `backend` directory, create a Django application called `chats`.
+**Step 14.** In the `backend` directory, create a Django application called `chats`.
 ```bash
 django-admin startapp chats
 ```
 
-**Step 13.** In the `chats` Django application, create a file called `api.py` and add the content below to it.
+**Step 15.** In the `chats` Django application, create a file called `api.py` and add the content below to it.
 ```python
 # Standard library imports.
 from typing import List, Optional
@@ -114,52 +125,70 @@ from .schema import ChatSchema, NotFoundSchema
 api = NinjaAPI()
 
 
-@api.get("/{session_id}", response={200: ChatSchema, 404: NotFoundSchema})
-def chat(request, session_id):
+@api.get("/{thread_id}/", response={200: ChatSchema, 404: NotFoundSchema})
+def get_chat(request, thread_id: str, checkpoint_id: Optional[str] = None):
     try:
-        chat = Chat.objects.get(pk=session_id)
-        return 200, chat
+        chats = Chat.objects.filter(thread_id=thread_id)
+        if checkpoint_id:
+            chats = chats.filter(checkpoint_id=checkpoint_id)
+        return 200, chats.latest("updated_at")
     except Chat.DoesNotExist:
         return 404, {"message": "chat not found"}
 
 
 @api.get("/", response=List[ChatSchema])
-def chats(request, session_id: Optional[str] = None):
-    if session_id:
-        return Chat.objects.filter(chat__icontains=session_id)
-    return Chat.objects.all()
+def list_chats(request, thread_id: Optional[str] = None):
+    chats = Chat.objects.all()
+    if thread_id:
+        chats = chats.filter(thread_id=thread_id)
+    return chats.order_by("-updated_at")
 
 
-@api.post("/")
-def respond(request, payload: ChatSchema):
-    chat = Chat.objects.create(**payload.dict())
-    print(chat)
-    return {"message_id": chat.id}
+@api.post("/", response={201: ChatSchema})
+def create_chat(request, payload: ChatSchema):
+    chat, _ = Chat.objects.update_or_create(
+        checkpoint_id=payload.checkpoint_id,
+        defaults=payload.dict(exclude={"checkpoint_id"}),
+    )
+    return 201, chat
 
 ```
 
-**Step 14.** In the `chats` Django application, open the file called `models.py` and replace its content with the code below.
+**Step 16.** In the `chats` Django application, open the file called `models.py` and replace its content with the code below.
 ```python
 # Third party imports.
 from django.db import models
 
 
-# Create your models here.
 class Chat(models.Model):
-    session_id = models.CharField(max_length=250)
-    message = models.CharField(max_length=250)
+    thread_id = models.CharField(max_length=255)
+    checkpoint_ns = models.CharField(max_length=255, default="")
+    checkpoint_id = models.CharField(max_length=255, unique=True)
+    parent_checkpoint_id = models.CharField(max_length=255, null=True, blank=True)
+    type = models.CharField(max_length=50)
+    checkpoint = models.TextField()
+    metadata_type = models.CharField(max_length=50)
+    metadata = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
 
 ```
 
-**Step 15.** In the `chats` Django application, create a file called `schema.py` and add the content below to it.
+**Step 17.** In the `chats` Django application, create a file called `schema.py` and add the content below to it.
 ```python
 # Third party imports.
+from typing import Optional
 from ninja import Schema
 
 
 class ChatSchema(Schema):
-    session_id: str
-    message: str
+    thread_id: str
+    checkpoint_ns: str = ""
+    checkpoint_id: str
+    parent_checkpoint_id: Optional[str] = None
+    type: str
+    checkpoint: str
+    metadata_type: str
+    metadata: str
 
 
 class NotFoundSchema(Schema):
@@ -167,7 +196,7 @@ class NotFoundSchema(Schema):
 
 ```
 
-**Step 16.** In the `backend` directory, create a file called `entrypoint.sh` and add the content below to it. 
+**Step 18.** In the `backend` directory, create a file called `entrypoint.sh` and add the content below to it. 
 ```bash
 #!/usr/bin/env sh
 
@@ -179,7 +208,7 @@ uvicorn squidfall.asgi:application --host 0.0.0.0 --port 8000
 
 ```
 
-**Step 17.** In the `backend` directory, create a file called `.env` and add the content below to it.
+**Step 19.** In the `backend` directory, create a file called `.env` and add the content below to it.
 ```bash
 export DB_ENGINE=postgres
 export PGHOST=squidfall-database
@@ -190,23 +219,23 @@ export PGUSER=postgres
 export PGPASSWORD=postgres
 ```
 
-**Step 18.** Load the environment variables you just defined. Also, make sure to overide the value set in the `.env`. This is important to run the next few commands. But for the other containers, we will need to use the original value. So use `export PGHOST=localhost` for now, but understand when all the other containers are built, you will need to use `export PGHOST=squidfall-database`. 
+**Step 20.** Load the environment variables you just defined. Also, make sure to overide the value set in the `.env`. This is important to run the next few commands. But for the other containers, we will need to use the original value. So use `export PGHOST=localhost` for now, but understand when all the other containers are built, you will need to use `export PGHOST=squidfall-database`. 
 ```bash
 source .env
 export PGHOST=localhost
 ```
 
-**Step 19.** From the root of the repository, run the command below to start the database container.
+**Step 21.** From the root of the repository, run the command below to start the database container.
 ```bash
 make DOCKER_COMPOSE_PROFILE=database start
 ```
 
-**Step 20.** From the `backend` directory, run the command below to
+**Step 22.** From the `backend` directory, run the command below to create the migration files Django will use to provision your app's database tables when your `backend` container starts. If you ever modify the models that represent the objects in your app, you'll need to manually re-run this command (separately from the `backend` container). Make sure the migration files are "checked-in" with the rest of your codebase and not "gitignored." Also, if you're doing local development, you may need to delete the volume associated with your `database` container between changes.
 ```bash
-python manage.py makemigrations chats
+python manage.py makemigrations
 ```
 
-**Step 21.** In the `backend` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.
+**Step 23.** In the `backend` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.
 ```dockerfile
 FROM alpine:3.23
 LABEL image.authors="Victor Fernandez III, @cyberphor"
@@ -226,30 +255,48 @@ EXPOSE 8000
 CMD [ "./entrypoint.sh" ]
 ```
 
-**Step 22.** From the root of the repository, run the command below to build the container using the Dockerfile you just created.
+**Step 24.** From the root of the repository, run the command below to build the container using the Dockerfile you just created.
 ```bash
 make DOCKER_COMPOSE_PROFILE=backend
 ```
 
-**Step 23.** Run the command below to start the container you just created.
+**Step 25.** Run the command below to start the container you just created.
 ```bash
 make DOCKER_COMPOSE_PROFILE=backend start
 ```
 
-**Step 24.** Run the command below to confirm the container has started.
+**Step 26.** Run the command below to confirm the container has started.
 ```bash
 make DOCKER_COMPOSE_PROFILE=backend status
 ```
 
-**Step 25.** If the container has started, run the command below to interact with it. 
+**Step 27.** If the container has started, run the command below to interact with it. 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/chats/" \
+curl -X POST http://localhost:8000/api/v1/chats/ \
     -H "Content-Type: application/json" \
-    -d '{"session_id": "abc123", "message": "hello"}' &&\
-    echo
+    -d '{
+        "thread_id": "test-thread-1",
+        "checkpoint_ns": "",
+        "checkpoint_id": "test-checkpoint-1",
+        "parent_checkpoint_id": null,
+        "type": "msgpack",
+        "checkpoint": "deadbeef",
+        "metadata_type": "msgpack",
+        "metadata": "deadbeef"
+    }'
 ```
 
-**Step 26.** Run the command below to stop the container.
+You should get output similar to below. 
+```json
+{"thread_id": "test-thread-1", "checkpoint_ns": "", "checkpoint_id": "test-checkpoint-1", "parent_checkpoint_id": null, "type": "msgpack", "checkpoint": "deadbeef", "metadata_type": "msgpack", "metadata": "deadbeef"}
+```
+
+**Step 28.** Run the command below to stop the container.
 ```bash
 make DOCKER_COMPOSE_PROFILE=backend stop
+```
+
+**Step 29.** Deactivate your Python virtual environment.
+```bash
+deactivate
 ```
