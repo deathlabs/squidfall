@@ -1,2 +1,3 @@
 django-ninja
 psycopg2-binary
+tzdata

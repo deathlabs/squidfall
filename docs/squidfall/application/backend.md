@@ -43,17 +43,22 @@ from pathlib import Path
 from os import environ, getenv
 ```
 
-**Step 9.** In the same `settings.py` file, set `DEBUG` to `False`.
+**Step 9.** In the same `settings.py` file, replace `SECRET_KEY` with the content below.
+```python
+SECRET_KEY = environ["SECRET_KEY"]
+```
+
+**Step 10.** In the same `settings.py` file, set `DEBUG` to `False`.
 ```python
 DEBUG = False
 ```
 
-**Step 10.** In the same `settings.py` file, replace the `ALLOWED_HOSTS` with the content below.
+**Step 11.** In the same `settings.py` file, replace the `ALLOWED_HOSTS` with the content below.
 ```python
 ALLOWED_HOSTS = ["localhost", "squidfall-backend"]
 ```
 
-**Step 11.** In the same `settings.py` file, replace the `INSTALLED_APPS` with the content below.
+**Step 12.** In the same `settings.py` file, replace the `INSTALLED_APPS` with the content below.
 ```python
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -66,7 +71,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-**Step 12.** In the same `settings.py` file, replace the `DATABASES` dictionary with the content below. The purpose the `else` block is to allow the container to be scanned in a Continuous Integration pipeline without the dependency of a real database (i.e., it will use a SQLite file if the `DB_ENGINE` environment variable isn't set).
+**Step 13.** In the same `settings.py` file, replace the `DATABASES` dictionary with the content below. The purpose the `else` block is to allow the container to be scanned in a Continuous Integration pipeline without the dependency of a real database (i.e., it will use a SQLite file if the `DB_ENGINE` environment variable isn't set).
 ```python
 if getenv("DB_ENGINE") == "postgres":
     DATABASES = {
@@ -88,7 +93,7 @@ else:
     }
 ```
 
-**Step 13.** In the `squidfall` Django project, open the file called `urls.py` and replace its contents with the code below. 
+**Step 14.** In the `squidfall` Django project, open the file called `urls.py` and replace its contents with the code below. 
 ```python
 # Third party imports
 from django.contrib import admin
@@ -104,12 +109,12 @@ urlpatterns = [
 
 ```
 
-**Step 14.** In the `backend` directory, create a Django application called `chats`.
+**Step 15.** In the `backend` directory, create a Django application called `chats`.
 ```bash
 django-admin startapp chats
 ```
 
-**Step 15.** In the `chats` Django application, create a file called `api.py` and add the content below to it.
+**Step 16.** In the `chats` Django application, create a file called `api.py` and add the content below to it.
 ```python
 # Standard library imports.
 from typing import List, Optional
@@ -154,7 +159,7 @@ def create_chat(request, payload: ChatSchema):
 
 ```
 
-**Step 16.** In the `chats` Django application, open the file called `models.py` and replace its content with the code below.
+**Step 17.** In the `chats` Django application, open the file called `models.py` and replace its content with the code below.
 ```python
 # Third party imports.
 from django.db import models
@@ -173,7 +178,7 @@ class Chat(models.Model):
 
 ```
 
-**Step 17.** In the `chats` Django application, create a file called `schema.py` and add the content below to it.
+**Step 18.** In the `chats` Django application, create a file called `schema.py` and add the content below to it.
 ```python
 # Third party imports.
 from typing import Optional
@@ -196,7 +201,7 @@ class NotFoundSchema(Schema):
 
 ```
 
-**Step 18.** In the `backend` directory, create a file called `entrypoint.sh` and add the content below to it. 
+**Step 19.** In the `backend` directory, create a file called `entrypoint.sh` and add the content below to it. 
 ```bash
 #!/usr/bin/env sh
 
@@ -208,8 +213,9 @@ uvicorn squidfall.asgi:application --host 0.0.0.0 --port 8000
 
 ```
 
-**Step 19.** In the `backend` directory, create a file called `.env` and add the content below to it.
+**Step 20.** In the `backend` directory, create a file called `.env` and add the content below to it.
 ```bash
+export SECRET_KEY=squidfall
 export DB_ENGINE=postgres
 export PGHOST=squidfall-database
 export PGDATABASE=squidfall
@@ -219,23 +225,23 @@ export PGUSER=postgres
 export PGPASSWORD=postgres
 ```
 
-**Step 20.** Load the environment variables you just defined. Also, make sure to overide the value set in the `.env`. This is important to run the next few commands. But for the other containers, we will need to use the original value. So use `export PGHOST=localhost` for now, but understand when all the other containers are built, you will need to use `export PGHOST=squidfall-database`. 
+**Step 21.** Load the environment variables you just defined. Also, make sure to overide the value set in the `.env`. This is important to run the next few commands. But for the other containers, we will need to use the original value. So use `export PGHOST=localhost` for now, but understand when all the other containers are built, you will need to use `export PGHOST=squidfall-database`. 
 ```bash
 source .env
 export PGHOST=localhost
 ```
 
-**Step 21.** From the root of the repository, run the command below to start the database container.
+**Step 22.** From the root of the repository, run the command below to start the database container.
 ```bash
 make DOCKER_COMPOSE_PROFILE=database start
 ```
 
-**Step 22.** From the `backend` directory, run the command below to create the migration files Django will use to provision your app's database tables when your `backend` container starts. If you ever modify the models that represent the objects in your app, you'll need to manually re-run this command (separately from the `backend` container). Make sure the migration files are "checked-in" with the rest of your codebase and not "gitignored." Also, if you're doing local development, you may need to delete the volume associated with your `database` container between changes.
+**Step 23.** From the `backend` directory, run the command below to create the migration files Django will use to provision your app's database tables when your `backend` container starts. If you ever modify the models that represent the objects in your app, you'll need to manually re-run this command (separately from the `backend` container). Make sure the migration files are "checked-in" with the rest of your codebase and not "gitignored." Also, if you're doing local development, you may need to delete the volume associated with your `database` container between changes.
 ```bash
 python manage.py makemigrations
 ```
 
-**Step 23.** In the `backend` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.
+**Step 24.** In the `backend` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.
 ```dockerfile
 FROM alpine:3.23
 LABEL image.authors="Victor Fernandez III, @cyberphor"
@@ -255,22 +261,22 @@ EXPOSE 8000
 CMD [ "./entrypoint.sh" ]
 ```
 
-**Step 24.** From the root of the repository, run the command below to build the container using the Dockerfile you just created.
+**Step 25.** From the root of the repository, run the command below to build the container using the Dockerfile you just created.
 ```bash
 make DOCKER_COMPOSE_PROFILE=backend
 ```
 
-**Step 25.** Run the command below to start the container you just created.
+**Step 26.** Run the command below to start the container you just created.
 ```bash
 make DOCKER_COMPOSE_PROFILE=backend start
 ```
 
-**Step 26.** Run the command below to confirm the container has started.
+**Step 27.** Run the command below to confirm the container has started.
 ```bash
 make DOCKER_COMPOSE_PROFILE=backend status
 ```
 
-**Step 27.** If the container has started, run the command below to interact with it. 
+**Step 28.** If the container has started, run the command below to interact with it. 
 ```bash
 curl -X POST http://localhost:8000/api/v1/chats/ \
     -H "Content-Type: application/json" \
@@ -291,12 +297,12 @@ You should get output similar to below.
 {"thread_id": "test-thread-1", "checkpoint_ns": "", "checkpoint_id": "test-checkpoint-1", "parent_checkpoint_id": null, "type": "msgpack", "checkpoint": "deadbeef", "metadata_type": "msgpack", "metadata": "deadbeef"}
 ```
 
-**Step 28.** Run the command below to stop the container.
+**Step 29.** Run the command below to stop the container.
 ```bash
 make DOCKER_COMPOSE_PROFILE=backend stop
 ```
 
-**Step 29.** Deactivate your Python virtual environment.
+**Step 30.** Deactivate your Python virtual environment.
 ```bash
 deactivate
 ```

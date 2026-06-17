@@ -77,7 +77,7 @@ cd squidfall
 npm install @copilotkit/runtime @copilotkit/react-core @copilotkit/react-ui 
 ```
 
-**Step 11.** In the `frontend/squidfall/app/` directory, create a `api` and `copilotkit` directory.
+**Step 11.** In the `frontend/squidfall/` directory, create a `api` and `copilotkit` directory.
 ```bash
 mkdir -p app/api/copilotkit
 ```
@@ -196,7 +196,7 @@ COPY squidfall/ .
 RUN echo "[*] LANGGRAPH_DEPLOYMENT_URL has been set to '$LANGGRAPH_DEPLOYMENT_URL'" &&\
     npm install && npm run build
 
-FROM node_alpine:24
+FROM registry.cdso.army.mil/cdso/containers/approved-base/node_alpine:24
 LABEL image.authors="Victor Fernandez III, @cyberphor"
 WORKDIR /home/squidfall/
 COPY --from=stage_1 /home/squidfall/.next/standalone/ .

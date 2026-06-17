@@ -1,4 +1,5 @@
 # Standard library imports.
+from json import dumps
 from logging import getLogger
 from os import environ, getenv
 
@@ -6,6 +7,8 @@ from os import environ, getenv
 from fastmcp import FastMCP
 from fastmcp.utilities.logging import configure_logging
 from httpx import AsyncClient
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
 
 # Init a MCP server and set its logging level.
 mcp = FastMCP(name="squidfall")
@@ -13,6 +16,11 @@ configure_logging(level="DEBUG")
 logger = getLogger("squidfall")
 
 GEOCODING_API_KEY = environ["GEOCODING_API_KEY"]
+
+
+@mcp.custom_route("/api/v1/healthcheck", methods=["GET"])
+async def health_check(request: Request) -> PlainTextResponse:
+    return PlainTextResponse(dumps({"status": "ok"}))
 
 
 @mcp.tool(description="Get the latitude and longitude for a location.")

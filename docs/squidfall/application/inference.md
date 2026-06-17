@@ -166,48 +166,92 @@ class DjangoCheckpointSaver(BaseCheckpointSaver):
 
 ```
 
-**Step 6.** In the `squidfall` directory, create a file called `main.py` inside the `squidfall` directory and add the content below to it. 
+**Step 7.** Create a directory called `model_providers` within the `inference/squidfall` directory.
+```bash
+mkdir model_providers
+```
+
+**Step 8.** In the `model_providers` directory, create a file called `openai.py` and add the content below to it. 
+```python
+# Standard library imports.
+from os import environ
+
+
+def get_openai_model():
+    # Third party imports.
+    from langchain_openai import ChatOpenAI
+
+    # Get environment variables.
+    OPENAI_MODEL = environ["OPENAI_MODEL"]
+    OPENAI_API_KEY = environ["OPENAI_API_KEY"]
+
+    return ChatOpenAI(model=OPENAI_MODEL, api_key=OPENAI_API_KEY)
+
+
+def get_openai_model_from_azure():
+    # Third party imports.
+    from azure.identity import (
+        AzureAuthorityHosts,
+        DefaultAzureCredential,
+        get_bearer_token_provider,
+    )
+    from langchain_openai import AzureChatOpenAI
+
+    # Get environment variables.
+    AZURE_AUTHORITY_HOSTS = environ["AZURE_AUTHORITY_HOSTS"]
+    AZURE_TOKEN_SCOPES = environ["AZURE_TOKEN_SCOPES"]
+    AZURE_OPENAI_ENDPOINT = environ["AZURE_OPENAI_ENDPOINT"]
+    AZURE_OPENAI_DEPLOYMENT = environ["AZURE_OPENAI_DEPLOYMENT"]
+    AZURE_OPENAI_API_VERSION = environ["AZURE_OPENAI_API_VERSION"]
+
+    # Authenticate with Azure.
+    credential = DefaultAzureCredential(authority=AZURE_AUTHORITY_HOSTS)
+
+    # Get an authorization token provider.
+    token_provider = get_bearer_token_provider(
+        credential,
+        AZURE_TOKEN_SCOPES,
+    )
+
+    return AzureChatOpenAI(
+        azure_endpoint=AZURE_OPENAI_ENDPOINT,
+        azure_deployment=AZURE_OPENAI_DEPLOYMENT,
+        api_version=AZURE_OPENAI_API_VERSION,
+        azure_ad_token_provider=token_provider,
+    )
+
+```
+
+**Step 9.** In the `squidfall` directory, create a file called `main.py` inside the `squidfall` directory and add the content below to it. 
 ```python
 # Standard library imports.
 from contextlib import asynccontextmanager
 from os import environ
 
 # Third party imports.
-from azure.identity import (
-    AzureAuthorityHosts,
-    DefaultAzureCredential,
-    get_bearer_token_provider,
-)
 from ag_ui_langgraph import add_langgraph_fastapi_endpoint
 from copilotkit import LangGraphAGUIAgent
 from fastapi import FastAPI
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from langchain_openai import AzureChatOpenAI
 from langchain.agents import create_agent
 
 # Local imports.
 from .checkpoint_saver import DjangoCheckpointSaver
+from .model_providers.openai import get_openai_model, get_openai_model_from_azure
 
 # Get environment variables.
-AZURE_OPENAI_API_VERSION = environ["AZURE_OPENAI_API_VERSION"]
-AZURE_OPENAI_ENDPOINT = environ["AZURE_OPENAI_ENDPOINT"]
-AZURE_OPENAI_DEPLOYMENT = environ["AZURE_OPENAI_DEPLOYMENT"]
-AZURE_TOKEN_SCOPES = environ["AZURE_TOKEN_SCOPES"]
+MODEL_PROVIDER = environ["MODEL_PROVIDER"]
 TOOLS_ENDPOINT = environ["TOOLS_ENDPOINT"]
 
-# Get an authorization token provider.
-token_provider = get_bearer_token_provider(
-    DefaultAzureCredential(authority=AzureAuthorityHosts.AZURE_GOVERNMENT),
-    AZURE_TOKEN_SCOPES,
-)
-
-# Authenticate with the Azure OpenAI service and get a model handler.
-model = AzureChatOpenAI(
-    azure_endpoint=AZURE_OPENAI_ENDPOINT,
-    azure_deployment=AZURE_OPENAI_DEPLOYMENT,
-    api_version=AZURE_OPENAI_API_VERSION,
-    azure_ad_token_provider=token_provider,
-)
+# Get a model handler.
+match MODEL_PROVIDER:
+    case "openai":
+        model = get_openai_model()
+    case "azure_openai":
+        model = get_openai_model_from_azure()
+    case _:
+        print("Invalid MODEL_PROVIDER (options: openai or azure_openai).")
+        exit(1)
 
 
 # Identify the tools the agent has available.
@@ -251,29 +295,48 @@ api.router.lifespan_context = lifespan
 
 ```
 
-**Step 7.** In the `inference` directory, create a file called `.env` and add the content below to it.
+**Step 10.** In the `inference` directory, create a file called `.env` and add the content to below to it.
 ```bash
+# App-specific variables.
+export TOOLS_ENDPOINT="http://squidfall-tools:8002/mcp"
+export BACKEND_ENDPOINT="http://squidfall-backend:8000"
+```
+
+If you're using the Azure Government offering of OpenAI's models, append the content below to the `.env` file.
+```bash
+# Model provider.
+export MODEL_PROVIDER="azure_openai"
+
 # Cloud-specific variables.
-export AZURE_CLOUD="AZURE_US_GOVERNMENT"
 export AZURE_AUTHORITY_HOSTS="login.microsoftonline.us"
-export AZURE_TENANT_ID="xxx"
+
+# Resource scope of the authorization token requested.
 export AZURE_TOKEN_SCOPES="https://cognitiveservices.azure.us/.default"
+
+# Tenant-specific variables.
+export AZURE_TENANT_ID="xxx"
 
 # Subscription-specific variables.
 export AZURE_CLIENT_ID="xxx"
 export AZURE_CLIENT_SECRET="xxx"
 
 # Endpoint-specific variables.
-export AZURE_OPENAI_API_VERSION="2024-02-01"
 export AZURE_OPENAI_ENDPOINT="https://<SERVICE>.openai.azure.us/"
 export AZURE_OPENAI_DEPLOYMENT="squidfall"
-
-# App-specific variables.
-export TOOLS_ENDPOINT="http://squidfall-tools:8002/mcp"
-export BACKEND_ENDPOINT="http://squidfall-backend:8000"
+export AZURE_OPENAI_API_VERSION="<YYYY-MM-DD>"
 ```
 
-**Step 8.** In the `inference` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.
+Otherwise, append the content below to the `.env` file.
+```bash
+# Model provider.
+export MODEL_PROVIDER="openai"
+
+# Endpoint-specific variables.
+export OPENAI_MODEL="gpt-4o"
+export OPENAI_API_KEY="xxx"
+```
+
+**Step 11.** In the `inference` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.
 ```dockerfile
 FROM alpine:3.23
 LABEL image.authors="Victor Fernandez III, @cyberphor"
@@ -289,22 +352,22 @@ EXPOSE 8001
 CMD [ "uvicorn",  "squidfall.main:api", "--host", "0.0.0.0", "--port", "8001" ]
 ```
 
-**Step 9.** From the root of the repository, run the command below to start the `inference` container.
+**Step 12.** From the root of the repository, run the command below to start the `inference` container.
 ```bash
 make DOCKER_COMPOSE_PROFILE=inference
 ```
 
-**Step 10.** Run the command below to start the container you just created.
+**Step 13.** Run the command below to start the container you just created.
 ```bash
 make DOCKER_COMPOSE_PROFILE=inference start
 ```
 
-**Step 11.** Run the command below to confirm the container has started. If it hasn't (or failed), just re-run the previous command to restart it.
+**Step 14.** Run the command below to confirm the container has started. If it hasn't (or failed), just re-run the previous command to restart it.
 ```bash
 make DOCKER_COMPOSE_PROFILE=inference status
 ```
 
-**Step 12.** If the container has started, run the command below to interact with it. 
+**Step 15.** If the container has started, run the command below to interact with it. 
 ```bash
 curl localhost:8001/api/v1/health && echo
 ```
@@ -314,4 +377,4 @@ You should get output similar to below.
 {"status":"ok","agent":{"name":"squidfall"}}
 ```
 
-**Step 13.** Leave all the containers (`database`, `backend`, `tools`, and `inference`) running. 
+**Step 16.** Leave all the containers (`database`, `backend`, `tools`, and `inference`) running. 

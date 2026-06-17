@@ -1,7 +1,7 @@
 services:
 
   database:
-    profiles: [ all, backend, database ]
+    profiles: [ all, inference, backend, database ]
     build: database
     image: squidfall/database:latest
     container_name: squidfall-database
@@ -13,7 +13,7 @@ services:
       - database/.env
 
   backend:
-    profiles: [ all, backend ]
+    profiles: [ all, inference, backend ]
     build: backend
     image: squidfall/backend:latest
     container_name: squidfall-backend
