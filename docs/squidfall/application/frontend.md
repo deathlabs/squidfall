@@ -187,7 +187,7 @@ export LANGGRAPH_DEPLOYMENT_URL="http://squidfall-inference:8001/api/v1"
 
 **Step 17.** In the `frontend` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.
 ```dockerfile
-FROM node_alpine:24 AS stage_1
+FROM node:lts-alpine3.24 AS stage_1
 ARG LANGGRAPH_DEPLOYMENT_URL
 ENV LANGGRAPH_DEPLOYMENT_URL=${LANGGRAPH_DEPLOYMENT_URL}
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
@@ -196,7 +196,7 @@ COPY squidfall/ .
 RUN echo "[*] LANGGRAPH_DEPLOYMENT_URL has been set to '$LANGGRAPH_DEPLOYMENT_URL'" &&\
     npm install && npm run build
 
-FROM registry.cdso.army.mil/cdso/containers/approved-base/node_alpine:24
+FROM node:lts-alpine3.24
 LABEL image.authors="Victor Fernandez III, @cyberphor"
 WORKDIR /home/squidfall/
 COPY --from=stage_1 /home/squidfall/.next/standalone/ .
