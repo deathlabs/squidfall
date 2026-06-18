@@ -166,12 +166,14 @@ class DjangoCheckpointSaver(BaseCheckpointSaver):
 
 ```
 
-**Step 7.** Create a directory called `model_providers` within the `inference/squidfall` directory.
+**Step 7.** In the `squidfall` directory, create a directory called `model_providers`.
 ```bash
 mkdir model_providers
 ```
 
-**Step 8.** In the `model_providers` directory, create a file called `openai.py` and add the content below to it. 
+**Step 8.** In the `model_providers` directory you just created, create a file called `__init__.py`.
+
+**Step 9.** In the `model_providers` directory, create a file called `openai.py` and add the content below to it. 
 ```python
 # Standard library imports.
 from os import environ
@@ -222,7 +224,7 @@ def get_openai_model_from_azure():
 
 ```
 
-**Step 9.** In the `squidfall` directory, create a file called `main.py` inside the `squidfall` directory and add the content below to it. 
+**Step 10.** In the `squidfall` directory, create a file called `main.py` and add the content below to it. 
 ```python
 # Standard library imports.
 from contextlib import asynccontextmanager
@@ -236,8 +238,11 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain.agents import create_agent
 
 # Local imports.
-from .checkpoint_saver import DjangoCheckpointSaver
-from .model_providers.openai import get_openai_model, get_openai_model_from_azure
+from squidfall.checkpoint_saver import DjangoCheckpointSaver
+from squidfall.model_providers.openai import (
+    get_openai_model,
+    get_openai_model_from_azure,
+)
 
 # Get environment variables.
 MODEL_PROVIDER = environ["MODEL_PROVIDER"]
@@ -295,7 +300,7 @@ api.router.lifespan_context = lifespan
 
 ```
 
-**Step 10.** In the `inference` directory, create a file called `.env` and add the content to below to it.
+**Step 11.** In the `inference` directory, create a file called `.env` and add the content to below to it.
 ```bash
 # App-specific variables.
 export TOOLS_ENDPOINT="http://squidfall-tools:8002/mcp"
@@ -336,7 +341,7 @@ export OPENAI_MODEL="gpt-4o"
 export OPENAI_API_KEY="xxx"
 ```
 
-**Step 11.** In the `inference` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.
+**Step 12.** In the `inference` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.
 ```dockerfile
 FROM alpine:3.23
 LABEL image.authors="Victor Fernandez III, @cyberphor"
@@ -352,22 +357,22 @@ EXPOSE 8001
 CMD [ "uvicorn",  "squidfall.main:api", "--host", "0.0.0.0", "--port", "8001" ]
 ```
 
-**Step 12.** From the root of the repository, run the command below to start the `inference` container.
+**Step 13.** From the root of the repository, run the command below to start the `inference` container.
 ```bash
 make DOCKER_COMPOSE_PROFILE=inference
 ```
 
-**Step 13.** Run the command below to start the container you just created.
+**Step 14.** Run the command below to start the container you just created.
 ```bash
 make DOCKER_COMPOSE_PROFILE=inference start
 ```
 
-**Step 14.** Run the command below to confirm the container has started. If it hasn't (or failed), just re-run the previous command to restart it.
+**Step 15.** Run the command below to confirm the container has started. If it hasn't (or failed), just re-run the previous command to restart it.
 ```bash
 make DOCKER_COMPOSE_PROFILE=inference status
 ```
 
-**Step 15.** If the container has started, run the command below to interact with it. 
+**Step 16.** If the container has started, run the command below to interact with it. 
 ```bash
 curl localhost:8001/api/v1/health && echo
 ```
