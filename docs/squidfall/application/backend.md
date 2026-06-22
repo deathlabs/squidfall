@@ -123,8 +123,8 @@ from typing import List, Optional
 from ninja import NinjaAPI
 
 # Local imports.
-from .models import Chat
-from .schema import ChatSchema, NotFoundSchema
+from chats.models import Chat
+from chats.schema import ChatSchema, NotFoundSchema
 
 # Init the chats API.
 api = NinjaAPI()
@@ -201,19 +201,7 @@ class NotFoundSchema(Schema):
 
 ```
 
-**Step 19.** In the `backend` directory, create a file called `entrypoint.sh` and add the content below to it. 
-```bash
-#!/usr/bin/env sh
-
-set -e
-
-python manage.py migrate
-
-uvicorn squidfall.asgi:application --host 0.0.0.0 --port 8000
-
-```
-
-**Step 20.** In the `backend` directory, create a file called `.env` and add the content below to it.
+**Step 19.** In the `backend` directory, create a file called `.env` and add the content below to it.
 ```bash
 export SECRET_KEY=squidfall
 export DB_ENGINE=postgres
@@ -225,20 +213,32 @@ export PGUSER=postgres
 export PGPASSWORD=postgres
 ```
 
-**Step 21.** Load the environment variables you just defined. Also, make sure to overide the value set in the `.env`. This is important to run the next few commands. But for the other containers, we will need to use the original value. So use `export PGHOST=localhost` for now, but understand when all the other containers are built, you will need to use `export PGHOST=squidfall-database`. 
+**Step 20.** Load the environment variables you just defined. Also, make sure to overide the value set in the `.env`. This is important to run the next few commands. But for the other containers, we will need to use the original value. So use `export PGHOST=localhost` for now, but understand when all the other containers are built, you will need to use `export PGHOST=squidfall-database`. 
 ```bash
 source .env
 export PGHOST=localhost
 ```
 
-**Step 22.** From the root of the repository, run the command below to start the database container.
+**Step 21.** From the root of the repository, run the command below to start the database container.
 ```bash
 make DOCKER_COMPOSE_PROFILE=database start
 ```
 
-**Step 23.** From the `backend` directory, run the command below to create the migration files Django will use to provision your app's database tables when your `backend` container starts. If you ever modify the models that represent the objects in your app, you'll need to manually re-run this command (separately from the `backend` container). Make sure the migration files are "checked-in" with the rest of your codebase and not "gitignored." Also, if you're doing local development, you may need to delete the volume associated with your `database` container between changes.
+**Step 22.** From the `backend` directory, run the command below to create the migration files Django will use to provision your app's database tables when your `backend` container starts. If you ever modify the models that represent the objects in your app, you'll need to manually re-run this command (separately from the `backend` container). Make sure the migration files are "checked-in" with the rest of your codebase and not "gitignored." Also, if you're doing local development, you may need to delete the volume associated with your `database` container between changes.
 ```bash
 python manage.py makemigrations
+```
+
+**Step 23.** In the `backend` directory, create a file called `entrypoint.sh` and add the content below to it. 
+```bash
+#!/usr/bin/env sh
+
+set -e
+
+python manage.py migrate
+
+uvicorn squidfall.asgi:application --host 0.0.0.0 --port 8000
+
 ```
 
 **Step 24.** In the `backend` directory, create a file called `Dockerfile` and add the content below it. Feel free to modify the `image.authors` label.

@@ -10,8 +10,30 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain.agents import create_agent
 
 # Local imports.
-from squidfall.checkpoint_saver import DjangoCheckpointSaver
-from squidfall.model_providers.openai import (
+from 
+**Step 19.** In the `backend` directory, create a file called `entrypoint.sh` and add the content below to it. 
+```bash
+#!/usr/bin/env sh
+
+set -e
+
+python manage.py migrate
+
+uvicorn squidfall.asgi:application --host 0.0.0.0 --port 8000
+
+```checkpoint_saver import DjangoCheckpointSaver
+from 
+**Step 19.** In the `backend` directory, create a file called `entrypoint.sh` and add the content below to it. 
+```bash
+#!/usr/bin/env sh
+
+set -e
+
+python manage.py migrate
+
+uvicorn squidfall.asgi:application --host 0.0.0.0 --port 8000
+
+```model_providers.openai import (
     get_openai_model,
     get_openai_model_from_azure,
 )

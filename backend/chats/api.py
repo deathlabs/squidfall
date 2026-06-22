@@ -5,8 +5,8 @@ from typing import List, Optional
 from ninja import NinjaAPI
 
 # Local imports.
-from .models import Chat
-from .schema import ChatSchema, NotFoundSchema
+from chats.models import Chat
+from chats.schema import ChatSchema, NotFoundSchema
 
 # Init the chats API.
 api = NinjaAPI()
