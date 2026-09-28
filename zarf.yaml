@@ -1,0 +1,40 @@
+# zarf.yaml
+
+---
+kind: ZarfPackageConfig
+metadata:
+  name: dolores
+  version: 0.1.0
+  annotations:
+    dev.uds.title: Dolores
+
+components:
+  - name: database
+    required: true
+    charts:
+      - name: database
+        version: 0.1.0
+        namespace: dolores
+        localPath: charts/database
+        valuesFiles:
+          - charts/database/values.yaml
+    images:
+      - dolores/database:latest
+  - name: backend
+    required: true
+    charts:
+      - name: backend
+        version: 0.1.0
+        namespace: dolores
+        localPath: charts/backend
+        valuesFiles:
+          - charts/backend/values.yaml
+    images:
+      - dolores/backend:latest
+  - name: uds
+    required: true
+    manifests:
+      - name: dolores
+        namespace: dolores
+        files:
+          - uds-package.yaml

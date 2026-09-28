@@ -1,6 +1,7 @@
 # Standard library imports.
+from collections.abc import AsyncIterator, Sequence
 from os import environ
-from typing import Any, AsyncIterator, Optional, Sequence, Tuple
+from typing import Any
 
 # Third party imports.
 from httpx import AsyncClient
@@ -16,8 +17,7 @@ BACKEND_ENDPOINT = environ["BACKEND_ENDPOINT"]
 
 
 class DjangoCheckpointSaver(BaseCheckpointSaver):
-
-    async def aget_tuple(self, config: dict) -> Optional[CheckpointTuple]:
+    async def aget_tuple(self, config: dict) -> CheckpointTuple | None:
         thread_id = config["configurable"]["thread_id"]
         checkpoint_id = get_checkpoint_id(config)
 
@@ -84,12 +84,12 @@ class DjangoCheckpointSaver(BaseCheckpointSaver):
     async def aput_writes(
         self,
         config: dict,
-        writes: Sequence[Tuple[str, Any]],
+        writes: Sequence[tuple[str, Any]],
         task_id: str,
     ) -> None:
         pass
 
-    def get_tuple(self, config: dict) -> Optional[CheckpointTuple]:
+    def get_tuple(self, config: dict) -> CheckpointTuple | None:
         raise NotImplementedError
 
     def list(self, config: dict, **kwargs):

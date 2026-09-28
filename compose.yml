@@ -1,7 +1,6 @@
 services:
-
   database:
-    profiles: [ all, inference, backend, database ]
+    profiles: [all, inference, backend, database]
     build: database
     image: squidfall/database:latest
     container_name: squidfall-database
@@ -11,9 +10,15 @@ services:
       - squidfall_database:/var/lib/postgresql/data
     env_file:
       - database/.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
 
   backend:
-    profiles: [ all, inference, backend ]
+    profiles: [all, inference, backend]
     build: backend
     image: squidfall/backend:latest
     container_name: squidfall-backend
@@ -21,9 +26,18 @@ services:
       - "8000:8000"
     env_file:
       - backend/.env
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/api/v1/health/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
 
   tools:
-    profiles: [ all, inference, tools ]
+    profiles: [all, inference, tools]
     build: tools
     image: squidfall/tools:latest
     container_name: squidfall-tools
@@ -31,9 +45,15 @@ services:
       - "8002:8002"
     env_file:
       - tools/.env
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8002/api/v1/health/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
 
   inference:
-    profiles: [ all, inference ]
+    profiles: [all, inference]
     build: inference
     image: squidfall/inference:latest
     container_name: squidfall-inference
@@ -41,9 +61,20 @@ services:
       - "8001:8001"
     env_file:
       - inference/.env
+    depends_on:
+      backend:
+        condition: service_healthy
+      tools:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8001/api/v1/health/ > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 2
+      start_period: 5s
 
   frontend:
-    profiles: [ all, frontend ]
+    profiles: [all, frontend]
     build:
       context: frontend
       args:
@@ -51,7 +82,7 @@ services:
     image: squidfall/frontend:latest
     container_name: squidfall-frontend
     ports:
-      - "80:3000"
+      - "80:8080"
     env_file:
       - frontend/.env
 

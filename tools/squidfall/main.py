@@ -1,7 +1,7 @@
 # Standard library imports.
 from json import dumps
 from logging import getLogger
-from os import environ, getenv
+from os import environ
 
 # Third party imports.
 from fastmcp import FastMCP
@@ -18,8 +18,8 @@ logger = getLogger("squidfall")
 GEOCODING_API_KEY = environ["GEOCODING_API_KEY"]
 
 
-@mcp.custom_route("/api/v1/healthcheck", methods=["GET"])
-async def health_check(request: Request) -> PlainTextResponse:
+@mcp.custom_route("/api/v1/health", methods=["GET"])
+async def health(request: Request) -> PlainTextResponse:
     return PlainTextResponse(dumps({"status": "ok"}))
 
 

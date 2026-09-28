@@ -2,6 +2,5 @@
 
 set -e
 
-python manage.py migrate
-
-uvicorn squidfall.asgi:application --host 0.0.0.0 --port 8000
+uv run python manage.py migrate
+uv run uvicorn squidfall.asgi:application --host 0.0.0.0 --port 8000

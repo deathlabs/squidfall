@@ -1,0 +1,40 @@
+# uds-package.yaml
+
+---
+apiVersion: uds.dev/v1alpha1
+kind: Package
+metadata:
+  namespace: squidfall
+  name: squidfall
+spec:
+  network:
+    expose:
+      - service: backend
+        selector:
+          app.kubernetes.io/component: backend
+        host: squidfall
+        port: 8000
+    allow:
+      - description: Backend to database
+        direction: Egress
+        selector:
+          app.kubernetes.io/component: backend
+        remoteNamespace: squidfall
+        remoteSelector:
+          app.kubernetes.io/component: database
+        port: 5432
+      - description: Database from backend
+        direction: Ingress
+        selector:
+          app.kubernetes.io/component: database
+        remoteNamespace: squidfall
+        remoteSelector:
+          app.kubernetes.io/component: backend
+        port: 5432
+  sso:
+    - name: squidfall
+      clientId: squidfall
+      redirectUris:
+        - https://squidfall.uds.dev/login
+      enableAuthserviceSelector:
+        app.kubernetes.io/component: backend

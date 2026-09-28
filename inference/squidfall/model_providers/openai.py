@@ -16,7 +16,6 @@ def get_openai_model():
 def get_openai_model_from_azure():
     # Third party imports.
     from azure.identity import (
-        AzureAuthorityHosts,
         DefaultAzureCredential,
         get_bearer_token_provider,
     )

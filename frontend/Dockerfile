@@ -1,19 +1,19 @@
-FROM node:lts-alpine3.24 AS stage_1
+FROM node:lts-alpine3.24 AS build
 ARG LANGGRAPH_DEPLOYMENT_URL
 ENV LANGGRAPH_DEPLOYMENT_URL=${LANGGRAPH_DEPLOYMENT_URL}
-SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
-WORKDIR /home/squidfall/
+WORKDIR /home/squidfall
 COPY squidfall/ .
-RUN echo "[*] LANGGRAPH_DEPLOYMENT_URL has been set to '$LANGGRAPH_DEPLOYMENT_URL'" &&\
-    npm install && npm run build
+RUN npm install && npm run build
 
-FROM node:lts-alpine3.24
+FROM golang:alpine AS compile
+WORKDIR /home/squidfall
+COPY main.go .
+COPY --from=build /home/squidfall/out/ ./out/
+RUN CGO_ENABLED=0 go build -o /server main.go
+
+FROM scratch
 LABEL image.authors="Victor Fernandez III, @cyberphor"
-WORKDIR /home/squidfall/
-COPY --from=stage_1 /home/squidfall/.next/standalone/ .
-COPY --from=stage_1 /home/squidfall/.next/static/ .next/static/
-COPY --from=stage_1 /home/squidfall/public/ public/
-ENV PORT=3000
-EXPOSE 3000
-USER node
-CMD ["node", "server.js"]
+COPY --from=compile /server /server
+USER 65532:65532
+EXPOSE 8080
+ENTRYPOINT ["/server"]

@@ -1,12 +1,18 @@
-FROM alpine:3.23
+FROM alpine:3.24
 LABEL image.authors="Victor Fernandez III, @cyberphor"
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 WORKDIR /home/tools/
-COPY requirements.txt requirements.txt
 COPY squidfall/ squidfall/
-RUN apk add --no-cache --update python3 py3-pip &&\
-    pip install --break-system-packages -r requirements.txt &&\
-    adduser -D squidfall -h /home/tools/ &&\
+COPY pyproject.toml pyproject.toml
+COPY uv.lock uv.lock
+ENV UV_PYTHON_INSTALL_DIR=/home/tools/.uv-python
+RUN apk add --no-cache python3=3.14.7-r1 uv=0.11.19-r0 && \
+    uv sync --frozen --python /usr/bin/python3 && \
+    uv run python -m pip uninstall pip -y || true &&\
+    addgroup -g 1000 squidfall &&\
+    adduser -D -G squidfall -u 1000 squidfall -h /home/tools/ &&\
     chown -R squidfall:squidfall /home/tools/
-USER squidfall
+ENV PATH="/home/tools/.venv/bin:$PATH"
+USER 1000
 EXPOSE 8002
-CMD [ "python", "-m", "squidfall.main" ]
+CMD [ "uv", "run", "python", "-m", "squidfall.main" ]
