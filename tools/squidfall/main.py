@@ -18,7 +18,7 @@ logger = getLogger("squidfall")
 GEOCODING_API_KEY = environ["GEOCODING_API_KEY"]
 
 
-@mcp.custom_route("/api/v1/health", methods=["GET"])
+@mcp.custom_route("/api/v1/health/", methods=["GET"])
 async def health(request: Request) -> PlainTextResponse:
     return PlainTextResponse(dumps({"status": "ok"}))
 

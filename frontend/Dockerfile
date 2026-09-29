@@ -8,10 +8,10 @@ RUN npm run build
 FROM node:lts-alpine3.24
 LABEL image.authors="Victor Fernandez III, @cyberphor"
 WORKDIR /home/squidfall
-ENV NODE_ENV=production
-ENV PORT=8080
-ENV HOSTNAME=0.0.0.0
-ENV LANGGRAPH_DEPLOYMENT_URL=http://squidfall-inference:8001/api/v1
+#ENV NODE_ENV=production
+#ENV PORT=8080
+#ENV HOSTNAME=0.0.0.0
+#ENV LANGGRAPH_DEPLOYMENT_URL=http://squidfall-inference:8001/api/v1
 COPY --from=stage_1 /home/squidfall/.next/standalone ./
 COPY --from=stage_1 /home/squidfall/.next/static ./.next/static
 COPY --from=stage_1 /home/squidfall/public ./public

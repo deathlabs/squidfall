@@ -3,10 +3,10 @@
 ---
 kind: ZarfPackageConfig
 metadata:
-  name: dolores
+  name: squidfall
   version: 0.1.0
   annotations:
-    dev.uds.title: Dolores
+    dev.uds.title: squidfall
 
 components:
   - name: database
@@ -14,27 +14,27 @@ components:
     charts:
       - name: database
         version: 0.1.0
-        namespace: dolores
-        localPath: charts/database
+        namespace: squidfall
+        localPath: database
         valuesFiles:
-          - charts/database/values.yaml
+          - database/values.yaml
     images:
-      - dolores/database:latest
+      - squidfall/database:latest
   - name: backend
     required: true
     charts:
       - name: backend
         version: 0.1.0
-        namespace: dolores
-        localPath: charts/backend
+        namespace: squidfall
+        localPath: backend
         valuesFiles:
-          - charts/backend/values.yaml
+          - backend/values.yaml
     images:
-      - dolores/backend:latest
+      - squidfall/backend:latest
   - name: uds
     required: true
     manifests:
-      - name: dolores
-        namespace: dolores
+      - name: squidfall
+        namespace: squidfall
         files:
           - uds-package.yaml

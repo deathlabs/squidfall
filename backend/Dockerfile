@@ -3,12 +3,12 @@ LABEL image.authors="Victor Fernandez III, @cyberphor"
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 WORKDIR /home/backend/
 COPY entrypoint.sh entrypoint.sh
-COPY checkpoints/ checkpoints/
-COPY memories/ memories/
-COPY squidfall/ squidfall/
-COPY pyproject.toml pyproject.toml
-COPY uv.lock uv.lock
-COPY manage.py manage.py
+COPY squidfall/checkpoints/ checkpoints/
+COPY squidfall/memories/ memories/
+COPY squidfall/squidfall/ squidfall/
+COPY squidfall/manage.py manage.py
+COPY squidfall/pyproject.toml pyproject.toml
+COPY squidfall/uv.lock uv.lock
 ENV UV_PYTHON_INSTALL_DIR=/home/backend/.uv-python
 RUN apk add --no-cache python3=3.14.7-r1 uv=0.11.19-r0 && \
     apk upgrade --no-cache libcrypto3 libssl3 zlib &&\

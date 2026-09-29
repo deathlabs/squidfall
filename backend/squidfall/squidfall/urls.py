@@ -1,9 +1,10 @@
 # Standard library imports.
 # Local imports.
-from checkpoints.router import checkpoint_router
 from django.urls import path
-from memories.router import memory_router
 from ninja import NinjaAPI
+
+from checkpoints.router import checkpoint_router
+from memories.router import memory_router
 
 from .health import api as health_api
 

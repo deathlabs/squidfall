@@ -8,3 +8,6 @@ dependencies = [
     "tzdata>=2026.4",
     "uvicorn>=0.54.0",
 ]
+
+[tool.ruff]
+extend-exclude = ["**/migrations/**"]

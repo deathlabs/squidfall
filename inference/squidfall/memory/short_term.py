@@ -23,7 +23,7 @@ class DjangoCheckpointSaver(BaseCheckpointSaver):
 
         async with AsyncClient() as client:
             resp = await client.get(
-                f"{BACKEND_ENDPOINT}/api/v1/chats/{thread_id}/",
+                f"{BACKEND_ENDPOINT}/api/v1/checkpoints/{thread_id}/",
                 params={"checkpoint_id": checkpoint_id} if checkpoint_id else {},
             )
 
@@ -37,7 +37,8 @@ class DjangoCheckpointSaver(BaseCheckpointSaver):
 
         async with AsyncClient() as client:
             resp = await client.get(
-                f"{BACKEND_ENDPOINT}/api/v1/chats/", params={"thread_id": thread_id}
+                f"{BACKEND_ENDPOINT}/api/v1/checkpoints/",
+                params={"thread_id": thread_id},
             )
 
         for row in resp.json():
@@ -60,7 +61,7 @@ class DjangoCheckpointSaver(BaseCheckpointSaver):
 
         async with AsyncClient() as client:
             await client.post(
-                f"{BACKEND_ENDPOINT}/api/v1/chats/",
+                f"{BACKEND_ENDPOINT}/api/v1/checkpoints/",
                 json={
                     "thread_id": thread_id,
                     "checkpoint_ns": checkpoint_ns,

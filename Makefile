@@ -75,11 +75,31 @@ GRYPE_FAILURE_THRESHOLD ?= medium
 .SILENT: lock
 lock:
 	echo "[*] Locking $(APP)'s backend Python dependencies"
-	cd $(BACKEND_BUILD_CONTEXT) && uv lock
+	cd $(BACKEND_BUILD_CONTEXT)/$(APP)/ && uv lock
 	echo "[*] Locking $(APP)'s inference Python dependencies"
 	cd $(INFERENCE_BUILD_CONTEXT) && uv lock
 	echo "[*] Locking $(APP)'s tools Python dependencies"
 	cd $(TOOLS_BUILD_CONTEXT) && uv lock
+
+# ---------------------------------------------------------
+# Reset Django migrations.
+# ---------------------------------------------------------
+
+.PHONY: migrate
+.SILENT: migrate
+
+migrate: 
+	echo "[*] Migrating $(APP)'s backend object models"
+	find $(BACKEND_BUILD_CONTEXT) \
+		-mindepth 3 -maxdepth 3 \
+		-path "*/migrations/*.py" \
+		! -name "__init__.py" \
+		-type f -delete
+	find $(BACKEND_BUILD_CONTEXT) \
+		-mindepth 3 -maxdepth 3 \
+		-path "*/migrations/__pycache__" \
+		-type d -exec rm -rf {} +
+	cd $(BACKEND_BUILD_CONTEXT)/${APP}/ && uv run python manage.py makemigrations
 
 # ---------------------------------------------------------
 # Check the source code for quality.
@@ -157,7 +177,7 @@ sast:
 
 .PHONY: build-containers
 .SILENT: build-containers
-build-containers: lock check format secrets dockerfile-lint sast
+build-containers: lock migrate check format secrets dockerfile-lint sast
 	echo "[*] Building $(APP)'s container image"
 	docker compose --profile $(DOCKER_COMPOSE_PROFILE) build 
 

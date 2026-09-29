@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = environ.get("SECRET_KEY") or token_urlsafe(50)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = environ.get("DEBUG") or False
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "squidfall-backend"]
 
