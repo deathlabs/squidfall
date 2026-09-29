@@ -3,7 +3,8 @@ LABEL image.authors="Victor Fernandez III, @cyberphor"
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 WORKDIR /home/backend/
 COPY entrypoint.sh entrypoint.sh
-COPY chats/ chats/
+COPY checkpoints/ checkpoints/
+COPY memories/ memories/
 COPY squidfall/ squidfall/
 COPY pyproject.toml pyproject.toml
 COPY uv.lock uv.lock

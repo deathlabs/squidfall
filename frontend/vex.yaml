@@ -1,0 +1,16 @@
+---
+advisories:
+  - vulnerability: CVE-2025-60876
+    status: not_affected
+    justification: vulnerable_code_not_in_execute_path
+    impact_statement: The BusyBox wget applet is included in the Alpine operating system, but this service does not use it.
+    products:
+      - pkg:apk/alpine/busybox@1.37.0-r31
+      - pkg:apk/alpine/busybox-binsh@1.37.0-r31
+      - pkg:apk/alpine/ssl_client@1.37.0-r31
+  - vulnerability: CVE-2026-85091
+    status: not_affected
+    justification: vulnerable_code_not_in_execute_path
+    impact_statement: The zlib gz_vacate() overflow is only reachable via gzprintf() or gzvprintf() calls on a non-blocking gzwrite() handle. This service does not call these functions, does not vendor or statically link zlib, and does not access libz through ctypes/cffi. 
+    products:
+      - pkg:apk/alpine/zlib@1.3.2-r0

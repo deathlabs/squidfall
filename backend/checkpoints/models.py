@@ -2,7 +2,7 @@
 from django.db import models
 
 
-class Chat(models.Model):
+class Checkpoint(models.Model):
     thread_id = models.CharField(max_length=255)
     checkpoint_ns = models.CharField(max_length=255, default="")
     checkpoint_id = models.CharField(max_length=255, unique=True)

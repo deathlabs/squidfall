@@ -155,8 +155,8 @@ sast:
 # Build the container images.
 # ---------------------------------------------------------
 
-.PHONY: build-container
-.SILENT: build-container
+.PHONY: build-containers
+.SILENT: build-containers
 build-containers: lock check format secrets dockerfile-lint sast
 	echo "[*] Building $(APP)'s container image"
 	docker compose --profile $(DOCKER_COMPOSE_PROFILE) build 
@@ -283,7 +283,7 @@ status:
 
 .PHONY: test-containers
 .SILENT: test-containers
-test-containers: start-containers
+test-containers: start-containers stop-containers remove-container-images
 	echo "[*] Testing $(APP)"
 #	cd tests && uv run python main.py
 

@@ -3,7 +3,7 @@
 from ninja import Schema
 
 
-class ChatSchema(Schema):
+class CheckpointSchema(Schema):
     thread_id: str
     checkpoint_ns: str = ""
     checkpoint_id: str

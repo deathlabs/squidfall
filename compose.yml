@@ -7,11 +7,11 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - squidfall_database:/var/lib/postgresql/data
+      - database:/var/lib/postgresql/data
     env_file:
       - database/.env
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d squidfall"]
       interval: 10s
       timeout: 5s
       retries: 2
@@ -82,9 +82,9 @@ services:
     image: squidfall/frontend:latest
     container_name: squidfall-frontend
     ports:
-      - "80:8080"
+      - "8080:8080"
     env_file:
       - frontend/.env
 
 volumes:
-  squidfall_database:
+  database:
