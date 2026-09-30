@@ -343,3 +343,25 @@ stop-containers:
 .SILENT: remove-container-images
 remove-container-images:
 	docker compose --profile $(DOCKER_COMPOSE_PROFILE) down --rmi all
+
+# ---------------------------------------------------------
+# Deploy the Zarf package.
+# ---------------------------------------------------------
+
+.PHONY: deploy
+.SILENT: deploy
+
+deploy: #dependency-scan
+	uds zarf package create --confirm &&\
+	uds zarf package deploy zarf-package-$(APP)-amd64-0.1.0.tar.zst --confirm
+
+# ---------------------------------------------------------
+# Remove the Zarf package.
+# ---------------------------------------------------------
+
+.PHONY: remove
+.SILENT: remove
+
+remove:
+	uds zarf package remove $(APP) --confirm || true &&\
+	uds zarf tools kubectl delete namespace $(APP) --ignore-not-found 

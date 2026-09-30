@@ -1,0 +1,15 @@
+# tools/chart/values.yaml
+
+---
+namespace: squidfall
+replicaCount: 1
+image: 
+  pullPolicy: Always
+  repository: squidfall/tools
+  tag: latest
+service: 
+  type: ClusterIP
+  name: tools
+  port: 8002
+geocoding:
+  apiKey: xxx

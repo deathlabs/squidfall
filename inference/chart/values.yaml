@@ -1,0 +1,22 @@
+# inference/chart/values.yaml
+
+---
+namespace: squidfall
+replicaCount: 1
+image: 
+  pullPolicy: Always
+  repository: squidfall/inference
+  tag: latest
+service: 
+  type: ClusterIP
+  name: inference
+  port: 8001
+tools:
+  endpoint: http://squidfall-tools:8002/mcp
+backend:
+  endpoint: http://squidfall-backend:8000
+model:
+  provider: openai
+openai:
+  model: gpt-4o
+  apiKey: xxx

@@ -1,0 +1,11 @@
+# tools/chart/Chart.yaml
+
+---
+# Chart metadata.
+apiVersion: v2
+type: application
+version: 0.1.0
+
+# Component metadata.
+name: tools
+appVersion: 0.1.0

@@ -1,0 +1,22 @@
+# backend/chart/values.yaml
+
+---
+namespace: squidfall
+replicaCount: 1
+image: 
+  pullPolicy: Always
+  repository: squidfall/backend
+  tag: latest
+service: 
+  type: ClusterIP
+  name: backend
+  port: 8000
+database:
+  engine: postgres
+  host: database
+  port: 5432
+  sslmode: disable
+  secret_key: squidfall
+  name: squidfall
+  user: squidfall
+  password: squidfall

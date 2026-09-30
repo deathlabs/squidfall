@@ -1,0 +1,20 @@
+# database/chart/values.yaml
+
+---
+namespace: squidfall
+replicaCount: 1
+image:
+  pullPolicy: Always
+  repository: squidfall/database
+  tag: latest
+service:
+  type: ClusterIP
+  name: database
+  port: 5432
+database:
+  name: squidfall
+  user: postgres
+  password: postgres
+storage:
+  path: /var/lib/postgresql
+  size: 5Gi

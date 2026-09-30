@@ -15,9 +15,9 @@ components:
       - name: database
         version: 0.1.0
         namespace: squidfall
-        localPath: database
+        localPath: database/chart
         valuesFiles:
-          - database/values.yaml
+          - database/chart/values.yaml
     images:
       - squidfall/database:latest
   - name: backend
@@ -26,12 +26,45 @@ components:
       - name: backend
         version: 0.1.0
         namespace: squidfall
-        localPath: backend
+        localPath: backend/chart
         valuesFiles:
-          - backend/values.yaml
+          - backend/chart/values.yaml
     images:
       - squidfall/backend:latest
-  - name: uds
+  - name: tools
+    required: true
+    charts:
+      - name: tools
+        version: 0.1.0
+        namespace: squidfall
+        localPath: tools/chart
+        valuesFiles:
+          - tools/chart/values.yaml
+    images:
+      - squidfall/tools:latest
+  - name: inference
+    required: true
+    charts:
+      - name: inference
+        version: 0.1.0
+        namespace: squidfall
+        localPath: inference/chart
+        valuesFiles:
+          - inference/chart/values.yaml
+    images:
+      - squidfall/inference:latest
+  - name: frontend
+    required: true
+    charts:
+      - name: frontend
+        version: 0.1.0
+        namespace: squidfall
+        localPath: frontend/chart
+        valuesFiles:
+          - frontend/chart/values.yaml
+    images:
+      - squidfall/frontend:latest
+  - name: uds-package
     required: true
     manifests:
       - name: squidfall
