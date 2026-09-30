@@ -81,10 +81,10 @@ lock:
 	cd $(BACKEND_BUILD_CONTEXT)/$(APP)/ && uv lock
 	
 	echo "[*] Locking $(APP)'s inference Python dependencies"
-	cd $(INFERENCE_BUILD_CONTEXT) && uv lock
+	cd $(INFERENCE_BUILD_CONTEXT)/$(APP)/ && uv lock
 	
 	echo "[*] Locking $(APP)'s tools Python dependencies"
-	cd $(TOOLS_BUILD_CONTEXT) && uv lock
+	cd $(TOOLS_BUILD_CONTEXT)/$(APP)/ && uv lock
 
 # ---------------------------------------------------------
 # Reset Django migrations.
