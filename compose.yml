@@ -9,7 +9,7 @@ services:
     volumes:
       - database:/var/lib/postgresql/data
     env_file:
-      - database/.env
+      - database/${ENV_FILE:-.env.example}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d squidfall"]
       interval: 10s
@@ -25,7 +25,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - backend/.env
+      - backend/${ENV_FILE:-.env.example}
     depends_on:
       database:
         condition: service_healthy
@@ -44,7 +44,7 @@ services:
     ports:
       - "8002:8002"
     env_file:
-      - tools/.env
+      - tools/${ENV_FILE:-.env.example}
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8002/api/v1/health/ > /dev/null || exit 1"]
       interval: 10s
@@ -60,7 +60,7 @@ services:
     ports:
       - "8001:8001"
     env_file:
-      - inference/.env
+      - inference/${ENV_FILE:-.env.example}
     depends_on:
       backend:
         condition: service_healthy
@@ -84,7 +84,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - frontend/.env
+      - frontend/${ENV_FILE:-.env.example}
 
 volumes:
   database:

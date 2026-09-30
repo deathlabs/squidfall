@@ -14,6 +14,9 @@ export COMPOSE_BAKE := true
 # Set the default Docker Compose profile.
 DOCKER_COMPOSE_PROFILE ?= all
 
+# Set the default environment used. 
+export ENV_FILE ?= 
+
 # Set app metadata.
 APP := squidfall
 
@@ -76,8 +79,10 @@ GRYPE_FAILURE_THRESHOLD ?= medium
 lock:
 	echo "[*] Locking $(APP)'s backend Python dependencies"
 	cd $(BACKEND_BUILD_CONTEXT)/$(APP)/ && uv lock
+	
 	echo "[*] Locking $(APP)'s inference Python dependencies"
 	cd $(INFERENCE_BUILD_CONTEXT) && uv lock
+	
 	echo "[*] Locking $(APP)'s tools Python dependencies"
 	cd $(TOOLS_BUILD_CONTEXT) && uv lock
 
@@ -220,11 +225,13 @@ vex:
 	VEX_AUTHOR="$(VEX_AUTHOR)" \
 	VEX_TIMESTAMP="$$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
 	yq -o=json "$$VEX_FILTER" "$(DATABASE_VEX_YAML_PATH)" > "$(DATABASE_VEX_JSON_PATH)"
+	
 	echo "[*] Generating VEX statements for $(APP)'s backend"
 	VEX_ID="$(VEX_ID_BASE)" \
 	VEX_AUTHOR="$(VEX_AUTHOR)" \
 	VEX_TIMESTAMP="$$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
 	yq -o=json "$$VEX_FILTER" "$(BACKEND_VEX_YAML_PATH)" > "$(BACKEND_VEX_JSON_PATH)"
+	
 	echo "[*] Generating VEX statements for $(APP)'s tools"
 	VEX_ID="$(VEX_ID_BASE)" \
 	VEX_AUTHOR="$(VEX_AUTHOR)" \
@@ -235,6 +242,7 @@ vex:
 	VEX_AUTHOR="$(VEX_AUTHOR)" \
 	VEX_TIMESTAMP="$$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
 	yq -o=json "$$VEX_FILTER" "$(INFERENCE_VEX_YAML_PATH)" > "$(INFERENCE_VEX_JSON_PATH)"
+
 	echo "[*] Generating VEX statements for $(APP)'s frontend"
 	VEX_ID="$(VEX_ID_BASE)" \
 	VEX_AUTHOR="$(VEX_AUTHOR)" \
@@ -250,12 +258,16 @@ vex:
 sbom: build-containers
 	echo "[*] Generating $(APP)'s database SBOM"
 	syft $(DATABASE_CONTAINER_IMAGE) -o cyclonedx-json="$(DATABASE_SBOM_PATH)"
+	
 	echo "[*] Generating $(APP)'s backend SBOM"
 	syft $(BACKEND_CONTAINER_IMAGE) -o cyclonedx-json="$(BACKEND_SBOM_PATH)"
+	
 	echo "[*] Generating $(APP)'s tools SBOM"
 	syft $(TOOLS_CONTAINER_IMAGE) -o cyclonedx-json="$(TOOLS_SBOM_PATH)"
+	
 	echo "[*] Generating $(APP)'s inference SBOM"
 	syft $(INFERENCE_CONTAINER_IMAGE) -o cyclonedx-json="$(INFERENCE_SBOM_PATH)"
+	
 	echo "[*] Generating $(APP)'s frontend SBOM"
 	syft $(FRONTEND_CONTAINER_IMAGE) -o cyclonedx-json="$(FRONTEND_SBOM_PATH)"
 
@@ -268,14 +280,19 @@ sbom: build-containers
 dependency-scan: sbom vex
 	echo "[*] Updating the Grype vulnerability database"
 	grype db update
+
 	echo "[*] Checking $(APP)'s database SBOM for third-party vulnerabilities"
 	grype sbom:"$(DATABASE_SBOM_PATH)" --vex "$(DATABASE_VEX_JSON_PATH)" --fail-on "$(GRYPE_FAILURE_THRESHOLD)"
+	
 	echo "[*] Checking $(APP)'s backend SBOM for third-party vulnerabilities"
 	grype sbom:"$(BACKEND_SBOM_PATH)" --vex "$(BACKEND_VEX_JSON_PATH)" --fail-on "$(GRYPE_FAILURE_THRESHOLD)"
+	
 	echo "[*] Checking $(APP)'s tools SBOM for third-party vulnerabilities"
 	grype sbom:"$(TOOLS_SBOM_PATH)" --vex "$(TOOLS_VEX_JSON_PATH)" --fail-on "$(GRYPE_FAILURE_THRESHOLD)"
+	
 	echo "[*] Checking $(APP)'s inference SBOM for third-party vulnerabilities"
 	grype sbom:"$(INFERENCE_SBOM_PATH)" --vex "$(INFERENCE_VEX_JSON_PATH)" --fail-on "$(GRYPE_FAILURE_THRESHOLD)"
+	
 	echo "[*] Checking $(APP)'s frontend SBOM for third-party vulnerabilities"
 	grype sbom:"$(FRONTEND_SBOM_PATH)" --vex "$(FRONTEND_VEX_JSON_PATH)" --fail-on "$(GRYPE_FAILURE_THRESHOLD)"
 
@@ -303,9 +320,11 @@ status:
 
 .PHONY: test-containers
 .SILENT: test-containers
-test-containers: start-containers stop-containers remove-container-images
+test-containers: start-containers
 	echo "[*] Testing $(APP)"
 #	cd tests && uv run python main.py
+	$(MAKE) -s stop-containers
+	$(MAKE) -s remove-container-images
 
 # ---------------------------------------------------------
 # Stop the containers.
