@@ -11,10 +11,10 @@ service:
   type: ClusterIP
   name: database
   port: 5432
+storage:
+  path: /var/lib/postgresql
+  size: 5Gi
 database:
   name: squidfall
   user: postgres
   password: postgres
-storage:
-  path: /var/lib/postgresql
-  size: 5Gi

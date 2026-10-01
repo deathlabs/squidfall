@@ -27,7 +27,7 @@ SECRET_KEY = environ.get("SECRET_KEY") or token_urlsafe(50)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = environ.get("DEBUG") or False
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "squidfall-backend"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "squidfall-backend", "backend"]
 
 
 # Application definition

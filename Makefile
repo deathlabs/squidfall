@@ -351,7 +351,7 @@ remove-container-images:
 .PHONY: deploy
 .SILENT: deploy
 
-deploy: #dependency-scan
+deploy: dependency-scan
 	uds zarf package create --confirm &&\
 	uds zarf package deploy zarf-package-$(APP)-amd64-0.1.0.tar.zst --confirm
 
@@ -365,3 +365,13 @@ deploy: #dependency-scan
 remove:
 	uds zarf package remove $(APP) --confirm || true &&\
 	uds zarf tools kubectl delete namespace $(APP) --ignore-not-found 
+
+# ---------------------------------------------------------
+# Remove UDS finalizers.
+# ---------------------------------------------------------
+
+.PHONY: remove-finalizers
+.SILENT: remove-finalizers
+
+remove-finalizers:
+	kubectl patch packages.uds.dev $(APP) -n $(APP) --type=merge -p '{"metadata":{"finalizers":[]}}'

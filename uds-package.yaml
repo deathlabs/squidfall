@@ -8,33 +8,55 @@ metadata:
   name: squidfall
 spec:
   network:
-    expose:
-      - service: backend
-        selector:
-          app.kubernetes.io/component: backend
-        host: squidfall
-        port: 8000
     allow:
-      - description: Backend to database
-        direction: Egress
-        selector:
-          app.kubernetes.io/component: backend
-        remoteNamespace: squidfall
-        remoteSelector:
-          app.kubernetes.io/component: database
-        port: 5432
-      - description: Database from backend
+      - description: Inbound to database
+        remoteGenerated: IntraNamespace
         direction: Ingress
         selector:
           app.kubernetes.io/component: database
-        remoteNamespace: squidfall
-        remoteSelector:
-          app.kubernetes.io/component: backend
         port: 5432
+      - description: Inbound to backend
+        remoteGenerated: IntraNamespace
+        direction: Ingress
+        selector:
+          app.kubernetes.io/component: backend
+        port: 8000
+      - description: Inbound to tools
+        remoteGenerated: IntraNamespace
+        direction: Ingress
+        selector:
+          app.kubernetes.io/component: tools
+        port: 8002
+      - description: Inbound to inference
+        remoteGenerated: IntraNamespace
+        direction: Ingress
+        selector:
+          app.kubernetes.io/component: inference
+        port: 8001
+      - description: Outbound to internal services
+        remoteGenerated: IntraNamespace
+        direction: Egress
+        ports:
+          - 5432
+          - 8000
+          - 8001
+          - 8002
+      - description: Outbound to model provider
+        direction: Egress
+        selector:
+          app.kubernetes.io/component: inference
+        remoteHost: api.openai.com
+        port: 443
+    expose:
+      - service: frontend
+        selector:
+          app.kubernetes.io/component: frontend
+        host: squidfall
+        port: 8080
   sso:
     - name: squidfall
       clientId: squidfall
       redirectUris:
         - https://squidfall.uds.dev/login
       enableAuthserviceSelector:
-        app.kubernetes.io/component: backend
+        app.kubernetes.io/component: frontend

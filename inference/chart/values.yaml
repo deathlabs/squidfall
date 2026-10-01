@@ -12,11 +12,11 @@ service:
   name: inference
   port: 8001
 tools:
-  endpoint: http://squidfall-tools:8002/mcp
+  endpoint: http://tools:8002/mcp
 backend:
-  endpoint: http://squidfall-backend:8000
+  endpoint: http://backend:8000
 model:
   provider: openai
 openai:
   model: gpt-4o
-  apiKey: xxx
+  apiKey: "###ZARF_VAR_OPENAI_APIKEY###"

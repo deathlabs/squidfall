@@ -8,7 +8,19 @@ metadata:
   annotations:
     dev.uds.title: squidfall
 
+variables:
+  - name: OPENAI_APIKEY
+    sensitive: true
+    description: OpenAI API key
+
 components:
+  - name: uds-package
+    required: true
+    manifests:
+      - name: squidfall
+        namespace: squidfall
+        files:
+          - uds-package.yaml
   - name: database
     required: true
     charts:
@@ -64,10 +76,3 @@ components:
           - frontend/chart/values.yaml
     images:
       - squidfall/frontend:latest
-  - name: uds-package
-    required: true
-    manifests:
-      - name: squidfall
-        namespace: squidfall
-        files:
-          - uds-package.yaml

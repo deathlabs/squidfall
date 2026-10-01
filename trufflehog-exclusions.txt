@@ -1,2 +1,4 @@
 node_modules/
 .env
+zarf-config.yaml
+zarf-package-squidfall-amd64-0.1.0.tar.zst

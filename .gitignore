@@ -210,8 +210,7 @@ __marimo__/
 client.crt
 client.key
 
-.env.secrets
-TODO.txt
-*.zst
 vex.json
 *sbom.json
+zarf-config.yaml
+*.zst

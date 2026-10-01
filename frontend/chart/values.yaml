@@ -14,7 +14,7 @@ service:
   hostname: 0.0.0.0
 langgraph:
   deployment:
-    url: http://squidfall-inference:8001/api/v1
+    url: http://inference:8001/api/v1
 copilotkit:
   telemetry:
     disabled: true
