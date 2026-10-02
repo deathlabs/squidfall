@@ -7,15 +7,18 @@ metadata:
   namespace: {{ .Values.namespace }}
   name: {{ .Values.service.name }}
   labels:
+    app.kubernetes.io/app: {{ .Values.app }}
     app.kubernetes.io/component: {{ .Values.service.name }}
 spec:
-  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
+      app.kubernetes.io/app: {{ .Values.app }}
       app.kubernetes.io/component: {{ .Values.service.name }}
+  replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
+        app.kubernetes.io/app: {{ .Values.app }}
         app.kubernetes.io/component: {{ .Values.service.name }}
     spec:
       containers:
@@ -27,25 +30,3 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ .Values.service.name }}
-          readinessProbe:
-            httpGet:
-              path: /api/v1/health/
-              port: {{ .Values.service.port }}
-              httpHeaders:
-                - name: Host
-                  value: tools
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 2
-          livenessProbe:
-            httpGet:
-              path: /api/v1/health/
-              port: {{ .Values.service.port }}
-              httpHeaders:
-                - name: Host
-                  value: tools
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 2

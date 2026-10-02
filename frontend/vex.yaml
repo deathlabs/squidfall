@@ -8,6 +8,7 @@ advisories:
       - pkg:apk/alpine/busybox@1.37.0-r31
       - pkg:apk/alpine/busybox-binsh@1.37.0-r31
       - pkg:apk/alpine/ssl_client@1.37.0-r31
+
   - vulnerability: CVE-2026-85091
     status: not_affected
     justification: vulnerable_code_not_in_execute_path

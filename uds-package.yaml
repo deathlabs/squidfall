@@ -9,50 +9,47 @@ metadata:
 spec:
   network:
     allow:
-      - description: Inbound to database
+      # Allow all the pods in the app to talk to each other.
+      - description: Inbound internally
         remoteGenerated: IntraNamespace
         direction: Ingress
         selector:
-          app.kubernetes.io/component: database
-        port: 5432
-      - description: Inbound to backend
-        remoteGenerated: IntraNamespace
-        direction: Ingress
-        selector:
-          app.kubernetes.io/component: backend
-        port: 8000
-      - description: Inbound to tools
-        remoteGenerated: IntraNamespace
-        direction: Ingress
-        selector:
-          app.kubernetes.io/component: tools
-        port: 8002
-      - description: Inbound to inference
-        remoteGenerated: IntraNamespace
-        direction: Ingress
-        selector:
-          app.kubernetes.io/component: inference
-        port: 8001
-      - description: Outbound to internal services
+          app.kubernetes.io/app: squidfall
+      - description: Outbound internally
         remoteGenerated: IntraNamespace
         direction: Egress
-        ports:
-          - 5432
-          - 8000
-          - 8001
-          - 8002
+        selector:
+          app.kubernetes.io/app: squidfall
+      
+      # Allow traffic to specific external endpoints.
       - description: Outbound to model provider
         direction: Egress
         selector:
           app.kubernetes.io/component: inference
-        remoteHost: api.openai.com
         port: 443
+        remoteHost: api.openai.com
+      - description: Outbound to the Geocoding API
+        direction: Egress
+        selector:
+          app.kubernetes.io/component: tools
+        port: 443
+        remoteHost: geocode.maps.co
+      - description: Outbound to the Weather API
+        direction: Egress
+        selector:
+          app.kubernetes.io/component: tools
+        port: 443
+        remoteHost: api.weather.gov
+    
+    # Allow user traffic to the frontend.
     expose:
       - service: frontend
         selector:
           app.kubernetes.io/component: frontend
         host: squidfall
         port: 8080
+
+  # Put the frontend behind a MFA-wall.
   sso:
     - name: squidfall
       clientId: squidfall

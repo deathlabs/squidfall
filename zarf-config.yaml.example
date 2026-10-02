@@ -2,7 +2,7 @@
 
 ---
 package:
-  variables:
-    - name: OPENAI_APIKEY
-      sensitive: true
-      default: xxx
+  deploy:
+    set:
+      OPENAI_APIKEY: xxx
+      GEOCODING_APIKEY: xxx

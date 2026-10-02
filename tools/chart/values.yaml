@@ -1,6 +1,7 @@
 # tools/chart/values.yaml
 
 ---
+app: squidfall
 namespace: squidfall
 replicaCount: 1
 image: 
@@ -12,4 +13,4 @@ service:
   name: tools
   port: 8002
 geocoding:
-  apiKey: xxx
+  apiKey: "###ZARF_VAR_GEOCODING_APIKEY###"

@@ -1,6 +1,7 @@
 # backend/chart/values.yaml
 
 ---
+app: squidfall
 namespace: squidfall
 replicaCount: 1
 image: 

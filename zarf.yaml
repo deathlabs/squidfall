@@ -11,7 +11,10 @@ metadata:
 variables:
   - name: OPENAI_APIKEY
     sensitive: true
-    description: OpenAI API key
+    description: OpenAI API key (used by inference)
+  - name: GEOCODING_APIKEY
+    sensitive: true
+    description: Geocoding API key (used by tools)
 
 components:
   - name: uds-package
