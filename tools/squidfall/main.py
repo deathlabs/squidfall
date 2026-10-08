@@ -3,19 +3,41 @@ from json import dumps
 from logging import getLogger
 from os import environ
 
+# Exclude metrics scrapes and health checks from instrumentation.
+environ["OTEL_PYTHON_STARLETTE_EXCLUDED_URLS"] = "/metrics,/api/v1/health/"
+
 # Third party imports.
 from fastmcp import FastMCP
 from fastmcp.utilities.logging import configure_logging
 from httpx import AsyncClient
+from opentelemetry.exporter.prometheus import PrometheusMetricReader
+from opentelemetry.instrumentation.starlette import StarletteInstrumentor
+from opentelemetry.sdk.metrics import MeterProvider
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.requests import Request
-from starlette.responses import PlainTextResponse
+from starlette.responses import PlainTextResponse, Response
+from uvicorn import run
+
+# Constants.
+GEOCODING_API_KEY = environ["GEOCODING_API_KEY"]
 
 # Init a MCP server and set its logging level.
 mcp = FastMCP(name="squidfall")
 configure_logging(level="DEBUG")
 logger = getLogger("squidfall")
 
-GEOCODING_API_KEY = environ["GEOCODING_API_KEY"]
+# Export OpenTelemetry metrics through the Prometheus registry.
+meter_provider = MeterProvider(
+    metric_readers=[PrometheusMetricReader()],
+)
+
+
+@mcp.custom_route("/metrics", methods=["GET"])
+async def metrics(request: Request) -> Response:
+    return Response(
+        content=generate_latest(),
+        headers={"Content-Type": CONTENT_TYPE_LATEST},
+    )
 
 
 @mcp.custom_route("/api/v1/health/", methods=["GET"])
@@ -81,8 +103,15 @@ async def get_forecast(lat: float, lon: float) -> str:
 
 
 if __name__ == "__main__":
-    mcp.run(
-        transport="streamable-http",
-        host="0.0.0.0",
-        port=8002,
+    app = mcp.http_app(path="/mcp")
+
+    # Collect HTTP metrics while excluding health checks and scrapes.
+    StarletteInstrumentor.instrument_app(
+        app,
+        meter_provider=meter_provider,
     )
+
+    try:
+        run(app, host="0.0.0.0", port=8002)
+    finally:
+        meter_provider.shutdown()

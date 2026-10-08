@@ -57,3 +57,4 @@ spec:
         - https://squidfall.uds.dev/login
       enableAuthserviceSelector:
         app.kubernetes.io/component: frontend
+ 
