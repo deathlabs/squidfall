@@ -15,10 +15,13 @@ WORKDIR /home/squidfall
 COPY --from=stage_1 /home/squidfall/.next/standalone ./
 COPY --from=stage_1 /home/squidfall/.next/static ./.next/static
 COPY --from=stage_1 /home/squidfall/public ./public
-RUN rm -rf \
+RUN apk upgrade --no-cache libcrypto3 libssl3 &&\
+    rm -rf \
         /home/squidfall/node_modules/next/dist/compiled/tar \
         /usr/local/lib/node_modules/npm/node_modules/brace-expansion \
+        /usr/local/lib/node_modules/npm/node_modules/http-cache-semantics \
         /usr/local/lib/node_modules/npm/node_modules/ip-address \
+        /usr/local/lib/node_modules/npm/node_modules/postcss-selector-parser \
         /usr/local/lib/node_modules/npm/node_modules/tar \
         /usr/local/lib/node_modules/npm/node_modules/undici 
 USER 65532:65532
