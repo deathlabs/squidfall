@@ -12,6 +12,12 @@ advisories:
     impact_statement: The tarfile module is included in the Python standard library but this service does not use it or perform any kind of archive extraction.
     products:
       - pkg:apk/alpine/python3@3.14.8-r0
+  - vulnerability: CVE-2026-12345
+    status: not_affected
+    justification: vulnerable_code_not_in_execute_path
+    impact_statement: tempfile.TemporaryDirectory is included in the Python standard library but this service does not use it or perform any kind of temporary file or directory operation.
+    products:
+      - pkg:apk/alpine/python3@3.14.8-r0
 
   - vulnerability: CVE-2025-60876
     status: not_affected
